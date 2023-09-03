@@ -1,21 +1,46 @@
-import base64
+from django.shortcuts import get_object_or_404
+from recipes.models import Recipe
+from users.models import Subscription
 
-from django.core.files.base import ContentFile
-from rest_framework import serializers
+
+def create_object(request, pk, serializer_in, serializer_out, model):
+    '''
+    Функции для создания связей
+    в моделях Favorite, ShoppingCart, Subscription.
+    '''
+    user = request.user.id
+    obj = get_object_or_404(model, id=pk)
+
+    data_recipe = {'user': user, 'recipe': obj.id}
+    data_subscribe = {'user': user, 'author': obj.id}
+
+    if model is Recipe:
+        serializer = serializer_in(data=data_recipe)
+    else:
+        serializer = serializer_in(data=data_subscribe)
+
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    serializer_to_response = serializer_out(obj, context={'request': request})
+    return serializer_to_response
 
 
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        # Если полученный объект строка, и эта строка
-        # начинается с 'data:image'...
-        if isinstance(data, str) and data.startswith('data:image'):
-            # ...начинаем декодировать изображение из base64.
-            # Сначала нужно разделить строку на части.
-            format, imgstr = data.split(';base64,')
-            # И извлечь расширение файла.
-            ext = format.split('/')[-1]
-            # Затем декодировать сами данные и поместить результат в файл,
-            # которому дать название по шаблону.
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+def delete_object(request, pk, model_object, model_for_delete_object):
+    '''
+    Функции для удаления связей
+    в моделях Favorite, ShoppingCart, Subscription.
+    '''
+    user = request.user
 
-        return super().to_internal_value(data)
+    obj_recipe = get_object_or_404(model_object, id=pk)
+    obj_subscription = get_object_or_404(model_object, id=pk)
+
+    if model_for_delete_object is Subscription:
+        object = get_object_or_404(
+            model_for_delete_object, user=user, author=obj_subscription
+        )
+    else:
+        object = get_object_or_404(
+            model_for_delete_object, user=user, recipe=obj_recipe
+        )
+    object.delete()
