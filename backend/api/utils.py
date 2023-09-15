@@ -5,7 +5,7 @@ from users.models import Subscription
 
 def create_object(request, pk, serializer_in, serializer_out, model):
     '''
-    Функции для создания связей
+    Вспомогательные функции для создания связей
     в моделях Favorite, ShoppingCart, Subscription.
     '''
     user = request.user.id
@@ -27,7 +27,7 @@ def create_object(request, pk, serializer_in, serializer_out, model):
 
 def delete_object(request, pk, model_object, model_for_delete_object):
     '''
-    Функции для удаления связей
+    Вспомогательные функции для удаления связей
     в моделях Favorite, ShoppingCart, Subscription.
     '''
     user = request.user

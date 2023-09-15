@@ -13,7 +13,10 @@ User = get_user_model()
 
 
 class UserSerializer(UserSerializer):
-    '''Сериалайзер для модели User.'''
+    '''
+    Сериалайзер для модели User.
+    Используется для отображения базовой информации о пользователе
+    '''
     is_subscribed = SerializerMethodField()
 
     class Meta:
@@ -28,6 +31,9 @@ class UserSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, obj):
+        '''
+        Проверяет подписан ли текущий пользователь на автора
+        '''
         user = self.context.get('request').user
         if user is None or user.is_anonymous:
             return False
@@ -51,7 +57,10 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientRecipeReadSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для модели IngredientRecipes.'''
+    '''
+    Сериалайзер для модели IngredientRecipes.
+    Используется для коректного отображения полей ингредиента при чтении.
+    '''
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.name')
     measurement_unit = serializers.CharField(
@@ -69,7 +78,10 @@ class IngredientRecipeReadSerializer(serializers.ModelSerializer):
 
 
 class IngredientRecipeWriteSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для модели IngredientRecipes.'''
+    '''
+    Сериалайзер для модели IngredientRecipes.
+    Используется для коректного отображения рецепта при записи.
+    '''
     id = serializers.IntegerField()
 
     class Meta:
@@ -82,7 +94,9 @@ class IngredientRecipeWriteSerializer(serializers.ModelSerializer):
 
 class TagSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(read_only=True)
-    '''Сериалайзер для модели Tag.'''
+    '''
+    Сериалайзер для модели Tag.
+    '''
     class Meta:
         model = Tag
         fields = (
@@ -94,15 +108,18 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для модели Recipe.'''
+    '''
+    Сериалайзер для модели Recipe.
+    Используется на отображение необходимых полей при чтеннии.
+    '''
     tags = TagSerializer(many=True, read_only=True)
-    author = UserSerializer()
-    image = Base64ImageField()
+    author = UserSerializer(read_only=True)
+    image = Base64ImageField(read_only=True)
     ingredients = IngredientRecipeReadSerializer(
         many=True, source='amount_ingredients'
     )
-    is_favorited = SerializerMethodField()
-    is_in_shopping_cart = SerializerMethodField()
+    is_favorited = SerializerMethodField(read_only=True)
+    is_in_shopping_cart = SerializerMethodField(read_only=True)
 
     class Meta:
         model = Recipe
@@ -121,17 +138,20 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
-        return (user.is_authenticated and
-                user.favorites.filter(recipe=obj).exists())
+        return (user.is_authenticated
+                and user.favorites.filter(recipe=obj).exists())
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get('request').user
-        return (user.is_authenticated and
-                user.cart.filter(recipe=obj).exists())
+        return (user.is_authenticated
+                and user.cart.filter(recipe=obj).exists())
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
-    '''Сериализатор для модели Recipe.'''
+    '''
+    Сериализатор для модели Recipe.
+    Используется для записи рецепта.
+    '''
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
         many=True
@@ -154,6 +174,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         )
 
     def create_ingredients(self, ingredients, recipe):
+        '''Метод создания ингредиентов с количеством ингредиентов.'''
         for ingredient in ingredients:
             ingredients, status = IngredientRecipes.objects.get_or_create(
                 recipe=recipe,
@@ -187,7 +208,10 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
 
 class RecipeFavoriteSerializer(serializers.ModelSerializer):
-    '''Сериализатор работает с моделью Recipe.'''
+    '''
+    Сериализатор работает с моделью Recipe.
+    Используется для отображения ответа при добавлении рецепта в избранное.
+    '''
     class Meta:
         model = Recipe
         fields = (
@@ -199,7 +223,9 @@ class RecipeFavoriteSerializer(serializers.ModelSerializer):
 
 
 class FavoriteAndShoppingCartSerializerBase(serializers.ModelSerializer):
-    '''Базовый абстрактынй сериалайзер для моделей Favorite и ShoppingCart.'''
+    '''
+    Базовый абстрактынй сериалайзер для моделей Favorite и ShoppingCart.
+    '''
     class Meta:
         model = Favorite
         abstract = True
@@ -220,19 +246,28 @@ class FavoriteAndShoppingCartSerializerBase(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(FavoriteAndShoppingCartSerializerBase):
-    '''Сериализатор работает с моделью Favorite.'''
+    '''
+    Сериализатор работает с моделью Favorite.
+    Испльзуется для создание связей избранных рецептов пользователя.
+    '''
     class Meta(FavoriteAndShoppingCartSerializerBase.Meta):
         pass
 
 
 class ShoppingCartSerializer(FavoriteAndShoppingCartSerializerBase):
-    '''Сериализатор работает с моделью ShoppingCart.'''
+    '''
+    Сериализатор работает с моделью ShoppingCart.
+    Используется для формирования карзины покупок пользователя.
+    '''
     class Meta(FavoriteAndShoppingCartSerializerBase.Meta):
         model = ShoppingCart
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    '''Сериализатор работает с моделью Subscription.'''
+    '''
+    Сериализатор работает с моделью Subscription.
+    Используется на запись при подписке на пользователя.
+    '''
     class Meta:
         model = Subscription
         fields = (
@@ -254,12 +289,18 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionReadSerializer(UserSerializer):
-    '''Сериализатор для модели User.'''
-    recipes = RecipeFavoriteSerializer(many=True)
-    recipes_count = SerializerMethodField()
+    '''
+    Сериализатор для модели User.
+    Используется на отображение необходимых полей при подписке
+    '''
+    recipes = RecipeFavoriteSerializer(many=True, read_only=True)
+    recipes_count = SerializerMethodField(read_only=True)
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + ('recipes', 'recipes_count')
 
     def get_recipes_count(self, obj):
+        '''Метод возвращает количество рецептов у автора рецептов
+          на которого подписался пользователь.
+          '''
         return obj.recipes.count()
