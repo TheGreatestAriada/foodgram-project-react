@@ -1,14 +1,15 @@
-from django.contrib.auth import get_user_model
-from django.db.models import Sum
-from django.shortcuts import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+                                        IsAuthenticatedOrReadOnly,)
 from rest_framework.response import Response
+
+from django.contrib.auth import get_user_model
+from django.db.models import Sum
+from django.shortcuts import HttpResponse
 
 from api.filters import RecipeFilter
 from api.permissions import IsOwnerOrReadOnly
@@ -17,10 +18,11 @@ from api.serializers import (FavoriteSerializer, IngredientSerializer,
                              RecipeWriteSerializer, ShoppingCartSerializer,
                              SubscriptionReadSerializer,
                              SubscriptionSerializer, TagSerializer,
-                             UserSerializer)
+                             UserSerializer,)
 from api.utils import create_object, delete_object
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Subscription
+
 
 User = get_user_model()
 
