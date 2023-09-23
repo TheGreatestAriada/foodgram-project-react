@@ -28,10 +28,10 @@ services:
     volumes:
       - static:/frontend_static
 
-  gateway:
-    image: thegreatestariada/foodgram_gateway
+  nginx:
+    image: thegreatestariada/foodgram_nginx
     volumes:
-      - static:/staticfiles/
-      - media:/media/
+      - static:/usr/share/nginx/html/
+      - media:/media
     ports:
       - "8000:80"

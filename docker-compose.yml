@@ -28,10 +28,10 @@ services:
     volumes:
       - static:/frontend_static
 
-  gateway:
-    build: ./infra/
+  nginx:
+    build: ./nginx/
     volumes:
-      - static:/staticfiles/
+      - static:/usr/share/nginx/html/
       - media:/media/
     ports:
-      - "8000:80"
+      - "80:80"
