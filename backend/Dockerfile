@@ -1,7 +1,8 @@
-FROM python:3.9-slim-bullseye 
+FROM python:3.9
 WORKDIR /app
+RUN pip install gunicorn==20.1.0
 COPY requirements/requirements.project.txt .
-RUN pip install -r requirements.project.txt --no-cache-dir
+ENV PYTHONUNBUFFERED=1
+RUN pip install -r requirements/requirements.project.txt --no-cache-dir
 COPY . .
-RUN chmod 700 migrate_collect_static_gunicorn.sh
-ENTRYPOINT ["./migrate_collect_static_gunicorn.sh"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "foodgram.wsgi"]
