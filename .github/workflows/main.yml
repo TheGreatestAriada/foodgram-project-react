@@ -30,9 +30,9 @@ jobs:
       postgres:
         image: postgres:13.10
         env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD:  ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: test_db
+          POSTGRES_USER: django_user
+          POSTGRES_PASSWORD: django_password
+          POSTGRES_DB: django_db
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
@@ -49,11 +49,11 @@ jobs:
         pip install -r ./backend/requirements/requirements.project.txt
     - name: Test with Django Test Cases
       env:
-        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        POSTGRES_USER: django_user
+        POSTGRES_PASSWORD: django_password
+        POSTGRES_DB: django_db
         DB_HOST: 127.0.0.1
-        DB_PORT: ${{ secrets.DB_PORT }}
+        DB_PORT: 5432
       run: |
         cd backend/
         python manage.py test
@@ -162,4 +162,4 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: Деплой Foodgram успешно выполнен!
+        message: Деплой Foodgram успешно выполнен! 
