@@ -66,6 +66,6 @@ python manage.py runserver
 **Проект будет досупен по адресу:**  
 http://foodgramofariada.ddnsking.com
 
-**Проект будет досупен по адресу:**
-Email адрес: admin@gmail.com
+**Проект будет досупен по адресу:**  
+Email адрес: admin@gmail.com  
 Password: 325a325a325
