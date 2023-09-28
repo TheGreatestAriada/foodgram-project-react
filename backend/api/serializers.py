@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.transaction import atomic
 from djoser.serializers import UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
@@ -162,6 +163,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                 amount=ingredient['amount']
             )
 
+    @atomic
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
@@ -170,6 +172,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         self.create_ingredients(recipe=recipe, ingredients=ingredients)
         return recipe
 
+    @atomic
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')

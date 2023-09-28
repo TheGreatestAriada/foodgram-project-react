@@ -112,7 +112,7 @@ class TagViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
 
-class IngredientViewSet(viewsets.ModelViewSet):
+class IngredientViewSet(viewsets.ReadOnlyViewSet):
     """Вьюсет для работы с ингредиентами."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
