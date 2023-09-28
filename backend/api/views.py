@@ -1,15 +1,14 @@
+from django.contrib.auth import get_user_model
+from django.db.models import Sum
+from django.shortcuts import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly,)
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-
-from django.contrib.auth import get_user_model
-from django.db.models import Sum
-from django.shortcuts import HttpResponse
 
 from api.filters import RecipeFilter
 from api.permissions import IsOwnerOrReadOnly
@@ -18,7 +17,7 @@ from api.serializers import (FavoriteSerializer, IngredientSerializer,
                              RecipeWriteSerializer, ShoppingCartSerializer,
                              SubscriptionReadSerializer,
                              SubscriptionSerializer, TagSerializer,
-                             UserSerializer,)
+                             UserSerializer)
 from api.utils import create_object, delete_object
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Subscription
@@ -28,7 +27,7 @@ User = get_user_model()
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    '''Вьюсет для работы с рецептами'''
+    """Вьюсет для работы с рецептами."""
     pagination_class = PageNumberPagination
     permission_classes = (IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly)
     filter_backends = (DjangoFilterBackend,)
@@ -107,14 +106,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class TagViewSet(viewsets.ModelViewSet):
-    '''Вьюсет для работы с тегами'''
+    """Вьюсет для работы с тегами."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
-    '''Вьюсет для работы с ингредиентами'''
+    """Вьюсет для работы с ингредиентами."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
@@ -128,7 +127,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
 
 
 class CustomUserViewSet(UserViewSet):
-    '''Вьюсет для работы с пользователями'''
+    """Вьюсет для работы с пользователями."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
 

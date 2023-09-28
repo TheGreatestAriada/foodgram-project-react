@@ -1,13 +1,12 @@
+from django.contrib.auth import get_user_model
 from djoser.serializers import UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework.validators import UniqueTogetherValidator
 
-from django.contrib.auth import get_user_model
-
 from recipes.models import (Favorite, Ingredient, IngredientRecipes, Recipe,
-                            ShoppingCart, Tag,)
+                            ShoppingCart, Tag)
 from users.models import Subscription
 
 
@@ -15,7 +14,7 @@ User = get_user_model()
 
 
 class UserSerializer(UserSerializer):
-    '''Сериалайзер для модели User'''
+    """Сериалайзер для модели User."""
     is_subscribed = SerializerMethodField()
 
     class Meta:
@@ -40,7 +39,7 @@ class UserSerializer(UserSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для модели Ingredient'''
+    """Сериалайзер для модели Ingredient."""
     id = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
@@ -53,7 +52,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientRecipeReadSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для модели IngredientRecipes'''
+    """Сериалайзер для модели IngredientRecipes."""
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.name')
     measurement_unit = serializers.CharField(
@@ -71,7 +70,7 @@ class IngredientRecipeReadSerializer(serializers.ModelSerializer):
 
 
 class IngredientRecipeWriteSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для модели IngredientRecipes'''
+    """"Сериалайзер для модели IngredientRecipes."""
     id = serializers.IntegerField()
 
     class Meta:
@@ -84,7 +83,7 @@ class IngredientRecipeWriteSerializer(serializers.ModelSerializer):
 
 class TagSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(read_only=True)
-    '''Сериалайзер для модели Tag'''
+    """Сериалайзер для модели Tag."""
     class Meta:
         model = Tag
         fields = (
@@ -96,7 +95,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для модели Recipe'''
+    """Сериалайзер для модели Recipe."""
     tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
     image = Base64ImageField(read_only=True)
@@ -133,7 +132,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
-    '''Сериализатор для модели Recipe'''
+    """Сериализатор для модели Recipe."""
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
         many=True
@@ -189,7 +188,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
 
 class RecipeFavoriteSerializer(serializers.ModelSerializer):
-    '''Сериализатор работает с моделью Recipe'''
+    """Сериализатор работает с моделью Recipe."""
     class Meta:
         model = Recipe
         fields = (
@@ -201,7 +200,7 @@ class RecipeFavoriteSerializer(serializers.ModelSerializer):
 
 
 class FavoriteAndShoppingCartSerializerBase(serializers.ModelSerializer):
-    '''Базовый абстрактынй сериалайзер для моделей Favorite и ShoppingCart'''
+    """Базовый абстрактынй сериалайзер для моделей Favorite и ShoppingCart."""
     class Meta:
         model = Favorite
         abstract = True
@@ -222,19 +221,19 @@ class FavoriteAndShoppingCartSerializerBase(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(FavoriteAndShoppingCartSerializerBase):
-    '''Сериализатор работает с моделью Favorite'''
+    """Сериализатор работает с моделью Favorite."""
     class Meta(FavoriteAndShoppingCartSerializerBase.Meta):
         pass
 
 
 class ShoppingCartSerializer(FavoriteAndShoppingCartSerializerBase):
-    '''Сериализатор работает с моделью ShoppingCart'''
+    """Сериализатор работает с моделью ShoppingCart."""
     class Meta(FavoriteAndShoppingCartSerializerBase.Meta):
         model = ShoppingCart
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    '''Сериализатор работает с моделью Subscription'''
+    """Сериализатор работает с моделью Subscription."""
     class Meta:
         model = Subscription
         fields = (
@@ -256,7 +255,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionReadSerializer(UserSerializer):
-    '''Сериализатор для модели User'''
+    """Сериализатор для модели User."""
     recipes = RecipeFavoriteSerializer(many=True, read_only=True)
     recipes_count = SerializerMethodField(read_only=True)
 

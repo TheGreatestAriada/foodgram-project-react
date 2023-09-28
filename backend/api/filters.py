@@ -5,7 +5,7 @@ from users.models import User
 
 
 class RecipeFilter(FilterSet):
-    """Фильтр выборки рецептов по определенным полям"""
+    """Фильтр выборки рецептов по определенным полям."""
     is_favorited = filters.BooleanFilter(
         method='get_is_favorited'
     )
