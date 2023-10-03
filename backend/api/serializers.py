@@ -134,10 +134,6 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Recipe."""
-    tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(),
-        many=True
-    )
     author = UserSerializer(read_only=True)
     ingredients = IngredientRecipeWriteSerializer(many=True)
     image = Base64ImageField()
