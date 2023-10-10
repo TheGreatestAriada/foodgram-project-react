@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
-from django.shortcuts import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
@@ -11,14 +10,14 @@ from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
 from rest_framework.response import Response
 
 from api.filters import RecipeFilter
-from api.permissions import IsOwnerOrReadOnly
+from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (FavoriteSerializer, IngredientSerializer,
                              RecipeFavoriteSerializer, RecipeReadSerializer,
                              RecipeWriteSerializer, ShoppingCartSerializer,
                              SubscriptionReadSerializer,
                              SubscriptionSerializer, TagSerializer,
                              UserSerializer)
-from api.utils import create_object, delete_object
+from api.utils import create_object, delete_object, send_message
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Subscription
 
@@ -29,7 +28,7 @@ User = get_user_model()
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с рецептами."""
     pagination_class = PageNumberPagination
-    permission_classes = (IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly)
+    permission_classes = (IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
@@ -47,37 +46,41 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeReadSerializer
         return RecipeWriteSerializer
 
-    @action(detail=True, methods=['post', 'delete'])
+    @action(detail=True, methods=['post'])
     def favorite(self, request, pk):
-        if request.method == 'POST':
-            serializer = create_object(
-                request,
-                pk,
-                FavoriteSerializer,
-                RecipeFavoriteSerializer,
-                Recipe
-            )
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
+        serializer = create_object(
+            request,
+            pk,
+            FavoriteSerializer,
+            RecipeFavoriteSerializer,
+            Recipe
+        )
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+
+    @favorite.mapping.delete
+    def destroy_favorite(self, request, pk):
         delete_object(request, pk, Recipe, Favorite)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['post', 'delete'])
+    @action(detail=True, methods=['post'])
     def shopping_cart(self, request, pk):
-        if request.method == 'POST':
-            serializer = create_object(
-                request,
-                pk,
-                ShoppingCartSerializer,
-                RecipeFavoriteSerializer,
-                Recipe
-            )
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
+        serializer = create_object(
+            request,
+            pk,
+            ShoppingCartSerializer,
+            RecipeFavoriteSerializer,
+            Recipe
+        )
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+
+    @shopping_cart.mapping.delete
+    def destroy_shopping_cart(self, request, pk):
         delete_object(request, pk, Recipe, ShoppingCart)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -90,19 +93,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'recipe_id__ingredients__name',
             'recipe_id__ingredients__measurement_unit',
             Sum('recipe_id__ingredients__amount_ingredients__amount'))
-
-        shopping_list = ['Список покупок:']
         ingredient_lst = set(ingredient_lst)
-
-        for ingredient in ingredient_lst:
-            shopping_list.append('{} ({}) - {}'.format(*ingredient))
-
-        response = HttpResponse('\n'.join(shopping_list),
-                                content_type='text/plain')
-        response['Content-Disposition'] = (
-            'attachment; filename="shopping_list.txt"'
-        )
-        return response
+        return send_message(ingredient_lst)
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -116,14 +108,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для работы с ингредиентами."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    search_fields = ('^name',)
     pagination_class = None
-
-    def get_queryset(self):
-        queryset = Ingredient.objects.all()
-        ingredients_name = self.request.query_params.get('name')
-        if ingredients_name is not None:
-            queryset = queryset.filter(name__istartswith=ingredients_name)
-        return queryset
 
 
 class CustomUserViewSet(UserViewSet):
