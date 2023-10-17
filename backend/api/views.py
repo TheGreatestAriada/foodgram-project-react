@@ -117,7 +117,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для работы с ингредиентами."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    search_fields = ('^name',)
+    search_fields = ['^name',]
     pagination_class = None
 
 
