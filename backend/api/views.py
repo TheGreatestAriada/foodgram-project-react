@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (
@@ -26,7 +26,7 @@ from api.serializers import (
     TagSerializer,
     UserSerializer,
 )
-from api.utils import create_object, delete_object, send_message
+from api.utils import send_message, CreateDeleteMixin
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Subscription
 
@@ -34,7 +34,7 @@ from users.models import Subscription
 User = get_user_model()
 
 
-class RecipeViewSet(viewsets.ModelViewSet):
+class RecipeViewSet(viewsets.ModelViewSet, CreateDeleteMixin):
     """Вьюсет для работы с рецептами."""
     pagination_class = PageNumberPagination
     permission_classes = (IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly)
@@ -57,7 +57,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def favorite(self, request, pk):
-        serializer = create_object(
+        serializer = self.create_object(
             request,
             pk,
             FavoriteSerializer,
@@ -71,12 +71,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @favorite.mapping.delete
     def destroy_favorite(self, request, pk):
-        delete_object(request, pk, Recipe, Favorite)
+        self.delete_object(request, pk, Recipe, Favorite)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'])
     def shopping_cart(self, request, pk):
-        serializer = create_object(
+        serializer = self.create_object(
             request,
             pk,
             ShoppingCartSerializer,
@@ -90,7 +90,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @shopping_cart.mapping.delete
     def destroy_shopping_cart(self, request, pk):
-        delete_object(request, pk, Recipe, ShoppingCart)
+        self.delete_object(request, pk, Recipe, ShoppingCart)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['get'],
@@ -117,11 +117,12 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для работы с ингредиентами."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    search_fields = ['^name',]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ('^name',)
     pagination_class = None
 
 
-class CustomUserViewSet(UserViewSet):
+class CustomUserViewSet(UserViewSet, CreateDeleteMixin):
     """Вьюсет для работы с пользователями."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -129,7 +130,7 @@ class CustomUserViewSet(UserViewSet):
     @action(detail=True, methods=['post', 'delete'])
     def subscribe(self, request, id):
         if request.method == 'POST':
-            serializer = create_object(
+            serializer = self.create_object(
                 request,
                 id,
                 SubscriptionSerializer,
@@ -140,7 +141,7 @@ class CustomUserViewSet(UserViewSet):
                 serializer.data,
                 status=status.HTTP_201_CREATED
             )
-        delete_object(request, id, User, Subscription)
+        self.delete_object(request, id, User, Subscription)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['get'])
