@@ -1,10 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.db.transaction import atomic
+from django.shortcuts import get_object_or_404
 from djoser.serializers import UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework.validators import UniqueTogetherValidator
+from rest_framework.serializers import BooleanField
 
 from recipes.models import (
     Favorite,
@@ -109,8 +111,8 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     ingredients = IngredientRecipeReadSerializer(
         many=True, source='amount_ingredients'
     )
-    is_favorited = SerializerMethodField(read_only=True)
-    is_in_shopping_cart = SerializerMethodField(read_only=True)
+    is_favorited = BooleanField(read_only=True, default=False)
+    is_in_shopping_cart = BooleanField(read_only=True, default=False)
 
     class Meta:
         model = Recipe
@@ -126,16 +128,6 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
-
-    def get_is_favorited(self, obj):
-        user = self.context.get('request').user
-        return (user.is_authenticated
-                and user.favorites.filter(recipe=obj).exists())
-
-    def get_is_in_shopping_cart(self, obj):
-        user = self.context.get('request').user
-        return (user.is_authenticated
-                and user.cart.filter(recipe=obj).exists())
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
@@ -158,18 +150,14 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         )
 
     def create_ingredients(self, ingredients, recipe):
-        IngredientRecipes.objects.bulk_create(
-            [
-                IngredientRecipes(
-                    ingredients=IngredientRecipes.objects.get_or_create(
-                        recipe=recipe,
-                        ingredient=Ingredient.objects.get(id=ingredient['id']),
-                        amount=ingredient['amount'],
-                    )
-                )
-                for ingredient in ingredients
-            ]
-        )
+        queryset = Ingredient.objects.all()
+        IngredientRecipes.objects.bulk_create([
+            IngredientRecipes(
+                ingredient=get_object_or_404(queryset, id=ingredient['id']),
+                recipe=recipe,
+                amount=ingredient['amount']
+            ) for ingredient in ingredients
+        ])
 
     @atomic
     def create(self, validated_data):

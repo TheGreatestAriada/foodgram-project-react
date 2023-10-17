@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Sum
+from django.db.models import Sum, Exists, OuterRef
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets, filters
@@ -42,9 +42,26 @@ class RecipeViewSet(viewsets.ModelViewSet, CreateDeleteMixin):
     filterset_class = RecipeFilter
 
     def get_queryset(self):
+        """Получить QuerySet с полями is_favorited и is_in_shopping_cart"""
         recipes = Recipe.objects.prefetch_related(
             'amount_ingredients__ingredient', 'tags'
         ).all()
+        if self.request.user.is_authenticated:
+            queryset = recipes.annotate(
+                is_favorited=Exists(
+                    Favorite.objects.filter(
+                        user=self.request.user,
+                        recipe_id=OuterRef('pk'),
+                    )
+                ),
+                is_in_shopping_cart=Exists(
+                    ShoppingCart.objects.filter(
+                        user=self.request.user,
+                        recipe_id=OuterRef('pk'),
+                    )
+                ),
+            ).select_related('author')
+            return queryset
         return recipes
 
     def perform_create(self, serializer):
