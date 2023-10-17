@@ -152,12 +152,15 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         )
 
     def create_ingredients(self, ingredients, recipe):
-        for ingredient in ingredients:
-            ingredients, status = IngredientRecipes.objects.get_or_create(
+        IngredientRecipes.objects.bulk_create(
+            [IngredientRecipes(
+                ingredients = IngredientRecipes.objects.get_or_create(
                 recipe=recipe,
                 ingredient=Ingredient.objects.get(id=ingredient['id']),
                 amount=ingredient['amount']
-            )
+                )
+            ) for ingredient in ingredients]
+        )
 
     @atomic
     def create(self, validated_data):

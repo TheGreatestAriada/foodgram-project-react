@@ -1,6 +1,8 @@
-from django.shortcuts import HttpResponse, get_object_or_404
+from django.shortcuts import get_object_or_404
+from django.http import FileResponse
 from recipes.models import Recipe
 from users.models import Subscription
+from rest_framework import status
 
 
 def create_object(request, pk, serializer_in, serializer_out, model):
@@ -43,9 +45,10 @@ def send_message(ingredient_lst):
     for ingredient in ingredient_lst:
         shopping_list.append('{} ({}) - {}'.format(*ingredient))
 
-    response = HttpResponse('\n'.join(shopping_list),
-                            content_type='text/plain')
-    response['Content-Disposition'] = (
-        'attachment; filename="shopping_list.txt"'
-    )
-    return response
+    return FileResponse(
+        '\n'.join(shopping_list),
+        as_attachment=True,
+        filename='shopping_list.txt',
+        status=status.HTTP_200_OK,
+        content_type='text/plain',
+        )
