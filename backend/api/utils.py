@@ -51,4 +51,4 @@ def send_message(ingredient_lst):
         filename='shopping_list.txt',
         status=status.HTTP_200_OK,
         content_type='text/plain',
-        )
+    )

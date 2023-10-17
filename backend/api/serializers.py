@@ -6,8 +6,14 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework.validators import UniqueTogetherValidator
 
-from recipes.models import (Favorite, Ingredient, IngredientRecipes, Recipe,
-                            ShoppingCart, Tag)
+from recipes.models import (
+    Favorite,
+    Ingredient,
+    IngredientRecipes,
+    Recipe,
+    ShoppingCart,
+    Tag,
+)
 from users.models import Subscription
 
 
@@ -153,13 +159,16 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def create_ingredients(self, ingredients, recipe):
         IngredientRecipes.objects.bulk_create(
-            [IngredientRecipes(
-                ingredients = IngredientRecipes.objects.get_or_create(
-                recipe=recipe,
-                ingredient=Ingredient.objects.get(id=ingredient['id']),
-                amount=ingredient['amount']
+            [
+                IngredientRecipes(
+                    ingredients=IngredientRecipes.objects.get_or_create(
+                        recipe=recipe,
+                        ingredient=Ingredient.objects.get(id=ingredient["id"]),
+                        amount=ingredient["amount"],
+                    )
                 )
-            ) for ingredient in ingredients]
+                for ingredient in ingredients
+            ]
         )
 
     @atomic
