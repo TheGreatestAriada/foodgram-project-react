@@ -1,7 +1,22 @@
 from django.contrib import admin
 
+from recipes.forms import NotAllowEmtyForm
 from recipes.models import (Favorite, Ingredient, IngredientRecipes, Recipe,
-                            ShoppingCart, Tag,)
+                            ShoppingCart, Tag)
+
+
+class IngredientRecipeInline(admin.TabularInline):
+    model = IngredientRecipes
+    extra = 0
+    min_num = 1
+    formset = NotAllowEmtyForm
+
+
+class TagInline(admin.TabularInline):
+    model = Recipe.tags.through
+    extra = 0
+    min_num = 1
+    formset = NotAllowEmtyForm
 
 
 @admin.register(Favorite)
@@ -13,16 +28,6 @@ class FavoriteAdmin(admin.ModelAdmin):
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'measurement_unit')
     list_filter = ('name', )
-
-
-class IngredientRecipeInline(admin.TabularInline):
-    model = IngredientRecipes
-    extra = 1
-
-
-class TagInline(admin.TabularInline):
-    model = Recipe.tags.through
-    extra = 1
 
 
 @admin.register(Recipe)
