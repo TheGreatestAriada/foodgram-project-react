@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
-from djoser.serializers import UserSerializer
+from djoser.serializers import UserSerializer as DjoserUserSerialiser
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
@@ -22,7 +22,7 @@ from users.models import Subscription
 User = get_user_model()
 
 
-class UserSerializer(UserSerializer):
+class UserSerializer(DjoserUserSerialiser):
     """Сериалайзер для модели User."""
     is_subscribed = SerializerMethodField()
 
@@ -198,7 +198,7 @@ class RecipeFavoriteSerializer(serializers.ModelSerializer):
         )
 
 
-class FavoriteAndShoppingCartSerializerBase(serializers.ModelSerializer):
+class RecipeRelationModeSerializer(serializers.ModelSerializer):
     """Базовый абстрактынй сериалайзер для моделей Favorite и ShoppingCart."""
     class Meta:
         model = Favorite
@@ -213,21 +213,21 @@ class FavoriteAndShoppingCartSerializerBase(serializers.ModelSerializer):
         recipe = data['recipe']
         if self.Meta.model.objects.filter(user=user, recipe=recipe).exists():
             raise serializers.ValidationError(
-                f'Вы уже добавили рецепт в - \
-                    {self.Meta.model._meta.verbose_name_plural}'
+                f'Вы уже добавили рецепт в - '
+                f'{self.Meta.model._meta.verbose_name_plural}'
             )
         return data
 
 
-class FavoriteSerializer(FavoriteAndShoppingCartSerializerBase):
+class FavoriteSerializer(RecipeRelationModeSerializer):
     """Сериализатор работает с моделью Favorite."""
-    class Meta(FavoriteAndShoppingCartSerializerBase.Meta):
+    class Meta(RecipeRelationModeSerializer.Meta):
         pass
 
 
-class ShoppingCartSerializer(FavoriteAndShoppingCartSerializerBase):
+class ShoppingCartSerializer(RecipeRelationModeSerializer):
     """Сериализатор работает с моделью ShoppingCart."""
-    class Meta(FavoriteAndShoppingCartSerializerBase.Meta):
+    class Meta(RecipeRelationModeSerializer.Meta):
         model = ShoppingCart
 
 

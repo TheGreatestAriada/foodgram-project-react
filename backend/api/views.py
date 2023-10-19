@@ -45,9 +45,9 @@ class RecipeViewSet(viewsets.ModelViewSet, CreateDeleteMixin):
         """Получить QuerySet с полями is_favorited и is_in_shopping_cart"""
         recipes = Recipe.objects.prefetch_related(
             'amount_ingredients__ingredient', 'tags'
-        ).all()
+        )
         if self.request.user.is_authenticated:
-            queryset = recipes.annotate(
+            recipes = recipes.annotate(
                 is_favorited=Exists(
                     Favorite.objects.filter(
                         user=self.request.user,
@@ -61,7 +61,6 @@ class RecipeViewSet(viewsets.ModelViewSet, CreateDeleteMixin):
                     )
                 ),
             ).select_related('author')
-            return queryset
         return recipes
 
     def perform_create(self, serializer):

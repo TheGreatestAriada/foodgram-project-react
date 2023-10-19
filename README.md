@@ -65,7 +65,8 @@ python manage.py runserver
 
 **Проект будет досупен по адресу:**  
 http://foodgramofariada.ddnsking.com
+IP 130.193.43.199
 
 **Админка:**  
-Email адрес: admin@gmail.com  
+Email адрес: mradmin@mail.ru
 Password: 325a325a325
